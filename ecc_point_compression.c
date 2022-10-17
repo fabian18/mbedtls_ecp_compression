@@ -20,6 +20,7 @@ int mbedtls_ecp_decompress(
     mbedtls_mpi r;
     mbedtls_mpi x;
     mbedtls_mpi n;
+    uint8_t compression = input[0];
 
     plen = mbedtls_mpi_size(&grp->P);
 
@@ -31,7 +32,7 @@ int mbedtls_ecp_decompress(
     if (ilen != plen + 1)
         return(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
 
-    if (input[0] != 0x02 && input[0] != 0x03)
+    if (compression != 0x02 && compression != 0x03)
         return(MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
 
     // output will consist of 0x04|X|Y
@@ -75,7 +76,7 @@ int mbedtls_ecp_decompress(
     MBEDTLS_MPI_CHK(mbedtls_mpi_exp_mod(&r, &r, &n, &grp->P, NULL));
 
     // Select solution that has the correct "sign" (equals odd/even solution in finite group)
-    if ((input[0] == 0x03) != mbedtls_mpi_get_bit(&r, 0)) {
+    if ((compression == 0x03) != mbedtls_mpi_get_bit(&r, 0)) {
         // r = p - r
         MBEDTLS_MPI_CHK(mbedtls_mpi_sub_mpi(&r, &grp->P, &r));
     }
